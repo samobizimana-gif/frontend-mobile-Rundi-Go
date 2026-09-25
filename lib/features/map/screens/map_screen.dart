@@ -4,7 +4,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:rundi_go/features/map/models/place.dart';
 import 'package:rundi_go/features/map/screens/place_detail_screen.dart';
+
 import '../../../core/api_client.dart';
+import '../../../core/app_toast.dart';
 import '../../../services/place_service.dart';
 
 class MapScreen extends StatefulWidget {
@@ -15,8 +17,8 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  // 👉 Centre par défaut : Bujumbura
-  static const LatLng _defaultCenter = LatLng(-3.3820, 29.3620);
+  // 👉 Centre par défaut : GITEGA
+  static const LatLng _defaultCenter = LatLng(-3.4264, 29.9306);
 
   final MapController _mapController = MapController();
 
@@ -165,7 +167,7 @@ class _MapScreenState extends State<MapScreen> {
     try {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        _snack("Veuillez activer le GPS de votre téléphone.");
+        _toast("Veuillez activer le GPS de votre téléphone.", error: true);
         setState(() => _isLoadingLocation = false);
         return;
       }
@@ -174,13 +176,13 @@ class _MapScreenState extends State<MapScreen> {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          _snack("Permission de localisation refusée.");
+          _toast("Permission de localisation refusée.", error: true);
           setState(() => _isLoadingLocation = false);
           return;
         }
       }
       if (permission == LocationPermission.deniedForever) {
-        _snack("Permission refusée définitivement.");
+        _toast("Permission refusée définitivement.", error: true);
         setState(() => _isLoadingLocation = false);
         return;
       }
@@ -199,17 +201,22 @@ class _MapScreenState extends State<MapScreen> {
       await _loadPlaces();
     } catch (e) {
       setState(() => _isLoadingLocation = false);
-      _snack("Erreur GPS : $e");
+      _toast("Erreur GPS : $e", error: true);
     }
   }
 
   void _recenter() => _mapController.move(_defaultCenter, 13.5);
 
-  void _snack(String msg) {
+  // ==========================================
+  // 🎨 TOAST (notification en haut)
+  // ==========================================
+  void _toast(String msg, {bool error = false}) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), duration: const Duration(seconds: 3)),
-    );
+    if (error) {
+      AppToast.error(context, msg);
+    } else {
+      AppToast.info(context, msg);
+    }
   }
 
   // ==========================================
@@ -624,7 +631,7 @@ class _MapScreenState extends State<MapScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => _snack("Itinéraire (à venir)"),
+                  onPressed: () => _toast("Itinéraire (à venir)"),
                   icon: const Icon(Icons.directions, size: 18),
                   label: const Text("Itinéraire",
                       style: TextStyle(fontWeight: FontWeight.bold)),

@@ -23,6 +23,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   String _langueCode = 'fr';
   String _countryCode = 'bi';
+  String _originalLangueCode = 'fr'; // 👈 pour détecter le changement
   File? _photoFile;
   bool _loading = false;
 
@@ -39,6 +40,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       _phoneController.text = user.phone;
       _bioController.text = user.bio;
       _langueCode = user.languagePreferee;
+      _originalLangueCode = user.languagePreferee;
       _countryCode = user.country;
     }
   }
@@ -211,6 +213,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _save() async {
     setState(() => _loading = true);
     try {
+      // 👉 1. Si la langue a changé → appelle l'endpoint dédié
+      if (_langueCode != _originalLangueCode) {
+        await AuthService.instance.updateLanguage(_langueCode);
+        print("🐛 Langue mise à jour : $_langueCode");
+      }
+
+      // 👉 2. Mise à jour des autres infos
       await AuthService.instance.updateProfile(
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),

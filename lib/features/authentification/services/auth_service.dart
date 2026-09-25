@@ -60,7 +60,7 @@ class AuthService {
   }
 
   // ==========================================
-  // 📝 REGISTER (avec wants_gerant)
+  // 📝 REGISTER
   // ==========================================
   Future<void> register({
     required String username,
@@ -186,7 +186,7 @@ class AuthService {
   }
 
   // ==========================================
-  // 🌐 LANGUE
+  // 🌐 LANGUE (endpoint dédié)
   // ==========================================
   Future<User> updateLanguage(String languePreferee) async {
     final data = await ApiClient.instance.patch(
@@ -194,7 +194,6 @@ class AuthService {
       path: '/auth/me/language/',
       body: {'language_preferee': languePreferee},
     );
-
     final user = User.fromJson(Map<String, dynamic>.from(data));
     _currentUser = user;
     return user;
